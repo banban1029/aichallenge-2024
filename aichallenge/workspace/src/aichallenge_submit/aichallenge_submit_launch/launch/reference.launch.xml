@@ -186,25 +186,62 @@
       </group> <!-- lane_driving -->
 
       <!-- Customizable -->
+      <!-- <node pkg="path_to_trajectory" exec="path_to_trajectory_node" name="path_to_trajectory" output="screen">
+        <remap from="input" to="/planning/scenario_planning/lane_driving/behavior_planning/path_with_lane_id"/>
+        <remap from="output" to="/planning/scenario_planning/trajectory"/>
+      </node>         変更箇所-->
+
+      <!-- Customizable -->
       <node pkg="path_to_trajectory" exec="path_to_trajectory_node" name="path_to_trajectory" output="screen">
         <remap from="input" to="/planning/scenario_planning/lane_driving/behavior_planning/path_with_lane_id"/>
         <remap from="output" to="/planning/scenario_planning/trajectory"/>
       </node>
+      <!-- <node pkg="path_to_trajectory" exec="csv_to_trajectory_node" name="csv_to_trajectory" output="screen">
+        <param name="csv_file_path" value="$(find-pkg-share aichallenge_submit_launch)/map/traject_map.csv"/>
+        <param name="velocity_rate" value="0.5"/>
+        <param name="trajectory_length" value="200.0"/>
+        <param name="trajectory_margin" value="2.0"/>
+        <param name="next_point_threshold" value="30.0"/>
+        <param name="z_position" value="181.16197506872854"/>
+        <remap from="output" to="/planning/scenario_planning/trajectory"/>
+        <remap from="in_odom" to="/awsim/ground_truth/localization/kinematic_state"/>
+      </node> -->
+
 
     </group>
   </group>
 
-  <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
-    <param name="use_external_target_vel" value="true"/>
-    <param name="external_target_vel" value="8.0"/>
-    <param name="lookahead_gain" value="0.4"/>
+  <!-- <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
+    <param name="use_external_target_vel" value="true"/> 
+    <param name="external_target_vel" value="8.0"/> 
+    <param name="lookahead_gain" value="0.35"/>
     <param name="lookahead_min_distance" value="5.0"/>
     <param name="speed_proportional_gain" value="1.0"/>
-
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
     <remap from="output/control_cmd" to="/control/command/control_cmd"/>
-  </node>
+  </node> -->
+
+    <!-- Simple_pure_pursuit
+  <arg name="config" default="$(find aichallenge_submit_launch)/config/simple_pure_pursuit_param.yaml"/>
+  <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
+    <rosparam file="$(arg config)" command="load"/>
+    <remap from="input/kinematics" to="/localization/kinematic_state"/>
+    <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
+    <remap from="output/control_cmd" to="/control/command/control_cmd"/>
+  </node> -->
+
+  
+<node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen"> 
+    <remap from="input/kinematics" to="/localization/kinematic_state"/>
+    <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
+    <remap from="output/control_cmd" to="/control/command/control_cmd"/>
+    <param from="$(find-pkg-share aichallenge_submit_launch)/config/simple_pure_pursuit_param.yaml" />
+</node>
+
+
+
+  
 
   <!-- Map -->
   <group>
@@ -249,5 +286,15 @@
     <!-- ad_api_adaptors -->
     <include file="$(find-pkg-share ad_api_adaptors)/launch/rviz_adaptors.launch.xml" />
   </group>
+
+  <!-- banban -->
+  <!-- <node
+        pkg="map_marking"
+        exec="marking_node"
+        output="screen">
+  </node> -->
+
+
+  
 
 </launch>
