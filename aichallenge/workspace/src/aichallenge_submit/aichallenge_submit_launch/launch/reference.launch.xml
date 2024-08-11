@@ -221,6 +221,26 @@
   </group>
 
   <!-- Control -->
+<!-- 
+  <<<<<< HEAD
+  <!<node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
+    <param name="use_external_target_vel" value="true"/> 
+    <param name="external_target_vel" value="8.0"/> 
+    <param name="lookahead_gain" value="0.35"/>
+    <param name="lookahead_min_distance" value="5.0"/>
+=======
+  <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
+    <param name="use_external_target_vel" value="true"/>
+    <param name="external_target_vel" value="8.0"/>
+    <param name="lookahead_gain" value="0.3"/>
+    <param name="lookahead_min_distance" value="4.0"/>
+>>>>>>> origin/main
+    <param name="speed_proportional_gain" value="1.0"/>
+    <remap from="input/kinematics" to="/localization/kinematic_state"/>
+    <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
+    <remap from="output/control_cmd" to="/control/command/control_cmd"/>
+  </node> --> 
+
 
     <!-- Simple_pure_pursuit
   <arg name="config" default="$(find aichallenge_submit_launch)/config/simple_pure_pursuit_param.yaml"/>
@@ -233,15 +253,33 @@
 
   
 <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen"> 
+    <param name="use_external_target_vel" value="true"/>
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
     <remap from="output/control_cmd" to="/control/command/control_cmd"/>
     <param from="$(find-pkg-share aichallenge_submit_launch)/config/simple_pure_pursuit_param.yaml" />
 </node>
+<!-- \
 
 
+/**:
+  ros__parameters:
+    use_external_target_vel: true
+    external_target_vel: 8.0
+    lookahead_gain: 0.35
+    lookahead_min_distance: 5.0
+    speed_proportional_gain: 1.0
 
-  
+-->
+<!-- 
+/**:
+  ros__parameters:
+    external_target_vel: 9.6
+    lookahead_gain: 0.3
+    lookahead_min_distance: 4.8
+    speed_proportional_gain: 1.1
+
+-->
 
   <!-- Map -->
   <group>

@@ -56,3 +56,14 @@ summary = {
 with open(args.output, "w") as fp:
     json.dump(summary, fp, indent=4)
     fp.write("\n")
+
+with open(args.output) as fp:
+    print(fp.read())
+
+
+## Run the script optuna 用
+file = "/aichallenge/optuna-result-summary.json"
+with open(file, "w") as fp:
+    json.dump(summary, fp, indent=4)
+    fp.write("\n")
+
