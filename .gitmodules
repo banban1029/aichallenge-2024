@@ -1,0 +1,3 @@
+[submodule "aichallenge/workspace/Autoware-Autotune"]
+    path = aichallenge/workspace/Autoware-Autotune
+    url = https://github.com/soyaoki/Autoware-Autotune
