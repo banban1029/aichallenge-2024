@@ -7,6 +7,10 @@
     <!-- Workaround because the simulator cannot use the service. -->
     <node pkg="aichallenge_system_launch" exec="control_mode_adapter.py" output="screen"/>
 
+
+    <!-- Object generator -->
+    <node pkg="aichallenge_system_launch" exec="object_generator.py" output="screen"/>
+
     <!-- RViz -->
     <group>
         <node pkg="rviz2" exec="rviz2" name="rviz2" output="screen" args="-d $(var rviz_config) -s $(find-pkg-share autoware_launch)/rviz/image/autoware.png"/>

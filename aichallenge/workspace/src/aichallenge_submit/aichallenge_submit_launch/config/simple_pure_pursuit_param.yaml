@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    external_target_vel: 9.0
+    external_target_vel: 9.6
     lookahead_gain: 0.3
-    lookahead_min_distance: 5.5
-    speed_proportional_gain: 1.9
+    lookahead_min_distance: 4.8
+    speed_proportional_gain: 1.1

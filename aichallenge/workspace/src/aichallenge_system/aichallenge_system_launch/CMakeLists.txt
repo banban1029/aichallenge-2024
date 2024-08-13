@@ -5,6 +5,7 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 install(PROGRAMS
+  script/object_generator.py
   script/control_mode_adapter.py
   script/object_marker.py
   DESTINATION lib/${PROJECT_NAME}
