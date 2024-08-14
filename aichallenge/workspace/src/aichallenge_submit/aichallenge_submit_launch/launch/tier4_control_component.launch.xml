@@ -10,17 +10,17 @@
 
   <include file="$(find-pkg-share aichallenge_submit_launch)/launch/control.launch.py">
     <!-- option -->
-    <arg name="vehicle_param_file" value="$(find-pkg-share $(var vehicle_model)_description)/config/vehicle_info.param.yaml"/>
+    <arg name="vehicle_param_file" value="$(find-pkg-share racing_kart_description)/config/vehicle_info.param.yaml"/>
     <arg name="vehicle_id" value="$(var vehicle_id)"/>
     <arg name="enable_obstacle_collision_checker" value="false"/>
     <arg name="trajectory_follower_node_param_path" value="$(find-pkg-share autoware_launch)/config/control/trajectory_follower/trajectory_follower_node.param.yaml"/>
     <arg
       name="lat_controller_param_path"
-      value="$(find-pkg-share autoware_launch)/config/control/trajectory_follower/$(var latlon_controller_param_path_dir)/lateral/$(var lateral_controller_mode).param.yaml"
+      value="$(find-pkg-share aichallenge_submit_launch)/config/control/trajectory_follower/$(var latlon_controller_param_path_dir)/lateral/mpc.param.yaml"
     />
     <arg
       name="lon_controller_param_path"
-      value="$(find-pkg-share aichallenge_submit_launch)/config/control/trajectory_follower/$(var latlon_controller_param_path_dir)/lateral/mpc.param.yaml"
+      value="$(find-pkg-share autoware_launch)/config/control/trajectory_follower/$(var latlon_controller_param_path_dir)/longitudinal/$(var longitudinal_controller_mode).param.yaml"
     />
     <arg name="lateral_controller_mode" value="$(var lateral_controller_mode)"/>
     <arg name="longitudinal_controller_mode" value="$(var longitudinal_controller_mode)"/>
@@ -39,5 +39,3 @@
     <arg name="external_cmd_selector_param_path" value="$(find-pkg-share autoware_launch)/config/control/external_cmd_selector/external_cmd_selector.param.yaml"/>
   </include>
 </launch>
-
-      
