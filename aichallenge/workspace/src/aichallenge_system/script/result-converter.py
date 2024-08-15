@@ -56,3 +56,12 @@ summary = {
 with open(args.output, "w") as fp:
     json.dump(summary, fp, indent=4)
     fp.write("\n")
+
+# for optuna study
+with open(args.output) as fp:
+    print(fp.read())
+
+file = "/aichallenge/optuna-result-summary.json"
+with open(file, "w") as fp:
+    json.dump(summary, fp, indent=4)
+    fp.write("\n")
