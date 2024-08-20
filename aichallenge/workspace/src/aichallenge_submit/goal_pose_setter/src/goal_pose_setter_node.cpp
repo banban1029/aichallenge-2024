@@ -12,6 +12,9 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     odometry_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "/localization/kinematic_state", 1,
         std::bind(&GoalPosePublisher::odometry_callback, this, std::placeholders::_1));
+    vehicle_condition_subscriber_ = this->create_subscription<std_msgs::msg::Int32>(
+        "/aichallenge/pitstop/condition", 1,
+        std::bind(&GoalPosePublisher::onVehicleCondition, this, std::placeholders::_1));
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(300),
         std::bind(&GoalPosePublisher::on_timer, this));
@@ -58,13 +61,13 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     half_goal_position_.orientation.z = this->get_parameter("half_goal.orientation.z").as_double();
     half_goal_position_.orientation.w = this->get_parameter("half_goal.orientation.w").as_double();
 
-    pit_stop_goal_position_.position.x = this->get_parameter("pit_stop_area.position.x").as_double();
-    pit_stop_goal_position_.position.y = this->get_parameter("pit_stop_area.position.y").as_double();
-    pit_stop_goal_position_.position.z = this->get_parameter("pit_stop_area.position.z").as_double();
-    pit_stop_goal_position_.orientation.x = this->get_parameter("pit_stop_area.orientation.x").as_double();
-    pit_stop_goal_position_.orientation.y = this->get_parameter("pit_stop_area.orientation.y").as_double();
-    pit_stop_goal_position_.orientation.z = this->get_parameter("pit_stop_area.orientation.z").as_double();
-    pit_stop_goal_position_.orientation.w = this->get_parameter("pit_stop_area.orientation.w").as_double();
+    pit_stop_position_.position.x = this->get_parameter("pit_stop_area.position.x").as_double();
+    pit_stop_position_.position.y = this->get_parameter("pit_stop_area.position.y").as_double();
+    pit_stop_position_.position.z = this->get_parameter("pit_stop_area.position.z").as_double();
+    pit_stop_position_.orientation.x = this->get_parameter("pit_stop_area.orientation.x").as_double();
+    pit_stop_position_.orientation.y = this->get_parameter("pit_stop_area.orientation.y").as_double();
+    pit_stop_position_.orientation.z = this->get_parameter("pit_stop_area.orientation.z").as_double();
+    pit_stop_position_.orientation.w = this->get_parameter("pit_stop_area.orientation.w").as_double();
 
     goal_range_ = this->get_parameter("goal_range").as_double();
 }
@@ -118,6 +121,13 @@ void GoalPosePublisher::route_state_callback(const autoware_adapi_v1_msgs::msg::
     is_started_ = true;
 }
 
+void GoalPosePublisher::onVehicleCondition(const std_msgs::msg::Int32::SharedPtr msg){
+    vehicle_condition_ = msg->data;
+    if (vehicle_condition_ >= 1000 && lap_count_ <= 4){ // until 4 laps
+        pit_stop_flag = true;
+    }
+}
+
 void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
 {
     if (!is_started_)
@@ -152,22 +162,22 @@ void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedP
     }
 
     // Publish pit stop goal pose
-    if (pit_stop_flag ==  true && pit_stop_published == false && 
+    if (pit_stop_flag ==  true && pit_stop_published_ == false && 
         half_goal_pose_published_ == false &&
         tier4_autoware_utils::calcDistance2d(msg->pose.pose, goal_position_) < goal_range_)
     {
         auto goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
         goal_pose->header.stamp = this->get_clock()->now();
         goal_pose->header.frame_id = "map";
-        goal_pose->pose = pit_stop_goal_position_;
+        goal_pose->pose = pit_stop_position_;
 
         goal_publisher_->publish(*goal_pose);
         RCLCPP_INFO(this->get_logger(), "Publishing goal pose for loop");
-        pit_stop_published = true; 
+        pit_stop_published_ = true; 
     }
 
     // Check vehicle condition and publish pit stop goal pose
-    if (vehicle_condition_ == 0 && pit_stop_published == true)
+    if (vehicle_condition_ == 0 && pit_stop_published_ == true)
     {
         auto goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
         goal_pose->header.stamp = this->get_clock()->now();
@@ -178,7 +188,7 @@ void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedP
         RCLCPP_INFO(this->get_logger(), "Publishing half goal pose for loop");
 
         half_goal_pose_published_ = true;
-        pit_stop_published = false;
+        pit_stop_published_ = false;
         pit_stop_flag = false;
         lap_count_ += 1;
     }
