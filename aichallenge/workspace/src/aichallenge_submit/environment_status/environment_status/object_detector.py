@@ -6,6 +6,8 @@ import rclpy.executors
 import csv
 import os
 from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Int32
+from std_msgs.msg import Float32
 from datetime import datetime
 
 class ObjectDetectorNode(rclpy.node.Node):
@@ -47,6 +49,7 @@ class ObjectDetectorNode(rclpy.node.Node):
 
                 # CSVファイルに書き込み
                 self.csv_writer.writerow([x, y, z, size])
+                self.csv_file.flush() 
             except IndexError:
                 self.get_logger().error(f"Index error processing data at index {i}")
 
@@ -107,12 +110,53 @@ class PitStopDetectorNode(rclpy.node.Node):
         # Close CSV file when node is destroyed
         if hasattr(self, 'csv_file') and self.csv_file is not None:
             self.csv_file.close()
+                                                                                                    
+
+
+class PitStopConditionNode(rclpy.node.Node):
+    def __init__(self):
+        super().__init__("pitstop_condition")
+        self.sub = self.create_subscription(Int32, "/aichallenge/pitstop/condition", self.callback, 1)
+        
+        # Prepare CSV file
+        output_dir = './workspace/src/aichallenge_submit/environment_status/environment_status/out/'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_file_path = os.path.join(output_dir, f'pitstop_condition_{timestamp}.csv')
+        self.csv_file = open(csv_file_path, mode='a', newline='')
+        self.csv_writer = csv.writer(self.csv_file)
+        self.csv_writer.writerow(['Elapsed Time (s)', 'Pit Condition'])  # Header of the CSV file
+
+        # Record the start time
+        self.start_time = datetime.now()
+
+    def callback(self, msg):
+
+        # Calculate elapsed time
+        current_time = datetime.now()
+        elapsed_time = (current_time - self.start_time).total_seconds()
+        pit_condition = msg.data
+
+        # Log the data
+        self.get_logger().info(f"Received pitstop condition: {pit_condition}")
+
+        # Write to CSV file
+        self.csv_writer.writerow([elapsed_time, pit_condition])
+        self.csv_file.flush()  # フラッシュ処理を追加
+
+    def close(self):
+        # Close CSV file when node is destroyed
+        if hasattr(self, 'csv_file') and self.csv_file is not None:
+            self.csv_file.close()
+
 
 class PitstopStatusNode(rclpy.node.Node):
 
     def __init__(self):
         super().__init__("pitstop_status_node")
-        self.sub = self.create_subscription(Float64MultiArray, "/aichallenge/pitstop/status", self.callback, 1)
+        self.sub = self.create_subscription(Float32, "/aichallenge/pitstop/status", self.callback, 1)
         
         # Prepare CSV file
         output_dir = './workspace/src/aichallenge_submit/environment_status/environment_status/out/'
@@ -129,27 +173,17 @@ class PitstopStatusNode(rclpy.node.Node):
         self.start_time = datetime.now()
 
     def callback(self, msg):
-        # Log the data length
-        self.get_logger().info(f"Received pitstop status data length: {len(msg.data)}")
-
-        # Log the full data for debugging
-        self.get_logger().info(f"Received pitstop status data: {msg.data}")
+        # Calculate elapsed time
+        current_time = datetime.now()
+        elapsed_time = (current_time - self.start_time).total_seconds()
+        pit_status = msg.data
 
         # Log the data
-        if len(msg.data) != 1:
-            self.get_logger().warning("Received pitstop status data length is not equal to 1")
+        self.get_logger().info(f"Received pitstop status: {pit_status}")
 
-        try:
-            # Calculate elapsed time
-            current_time = datetime.now()
-            elapsed_time = 1
-            pit_status = msg.data[0]  # Assuming the status is in the first index
-            self.get_logger().info(f"Received pitstop status: {pit_status}")
-
-            # Write to CSV file
-            self.csv_writer.writerow([elapsed_time, pit_status])
-        except IndexError:
-            self.get_logger().error("Index error processing pitstop status data")
+        # Write to CSV file
+        self.csv_writer.writerow([elapsed_time, pit_status])
+        self.csv_file.flush()  # フラッシュ処理を追加
 
     def close(self):
         # Close CSV file when node is destroyed
@@ -164,12 +198,13 @@ def main(args=None):
     # ノードの作成
     object_detector_node = ObjectDetectorNode()
     pitstop_detector_node = PitStopDetectorNode()
-    # pitstop_status_node = PitstopStatusNode()
+    pitstop_condition_node = PitStopConditionNode()
+    pitstop_status_node = PitstopStatusNode()
 
-    
     executor.add_node(object_detector_node)
     executor.add_node(pitstop_detector_node)
-    # executor.add_node(pitstop_status_node)
+    executor.add_node(pitstop_condition_node)
+    executor.add_node(pitstop_status_node)
     
     try:
         executor.spin()
@@ -180,7 +215,8 @@ def main(args=None):
         # Clean up resources
         object_detector_node.close()
         pitstop_detector_node.close()
-        # pitstop_status_node.close()
+        pitstop_condition_node.close()
+        pitstop_status_node.close()
         rclpy.shutdown()
 
 if __name__ == '__main__':
