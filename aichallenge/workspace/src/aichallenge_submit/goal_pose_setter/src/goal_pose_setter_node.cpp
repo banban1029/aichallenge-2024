@@ -32,6 +32,14 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     this->declare_parameter("half_goal.orientation.z", -0.9);
     this->declare_parameter("half_goal.orientation.w", 0.25);
 
+    this->declare_parameter("pit_stop_area.position.x", 89626.3671875);
+    this->declare_parameter("pit_stop_area.position.y", 43134.921875);
+    this->declare_parameter("pit_stop_area.position.z", -29.700000762939453);
+    this->declare_parameter("pit_stop_area.orientation.x", 0.0);
+    this->declare_parameter("pit_stop_area.orientation.y", 0.0);
+    this->declare_parameter("pit_stop_area.orientation.z", -0.8788172006607056);
+    this->declare_parameter("pit_stop_area.orientation.w", -0.47715866565704346);
+
     this->declare_parameter("goal_range", 10.0);
 
     goal_position_.position.x = this->get_parameter("goal.position.x").as_double();
@@ -42,7 +50,6 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     goal_position_.orientation.z = this->get_parameter("goal.orientation.z").as_double();
     goal_position_.orientation.w = this->get_parameter("goal.orientation.w").as_double();
 
-
     half_goal_position_.position.x = this->get_parameter("half_goal.position.x").as_double();
     half_goal_position_.position.y = this->get_parameter("half_goal.position.y").as_double();
     half_goal_position_.position.z = this->get_parameter("half_goal.position.z").as_double();
@@ -50,6 +57,14 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     half_goal_position_.orientation.y = this->get_parameter("half_goal.orientation.y").as_double();
     half_goal_position_.orientation.z = this->get_parameter("half_goal.orientation.z").as_double();
     half_goal_position_.orientation.w = this->get_parameter("half_goal.orientation.w").as_double();
+
+    pit_stop_goal_position_.position.x = this->get_parameter("pit_stop_area.position.x").as_double();
+    pit_stop_goal_position_.position.y = this->get_parameter("pit_stop_area.position.y").as_double();
+    pit_stop_goal_position_.position.z = this->get_parameter("pit_stop_area.position.z").as_double();
+    pit_stop_goal_position_.orientation.x = this->get_parameter("pit_stop_area.orientation.x").as_double();
+    pit_stop_goal_position_.orientation.y = this->get_parameter("pit_stop_area.orientation.y").as_double();
+    pit_stop_goal_position_.orientation.z = this->get_parameter("pit_stop_area.orientation.z").as_double();
+    pit_stop_goal_position_.orientation.w = this->get_parameter("pit_stop_area.orientation.w").as_double();
 
     goal_range_ = this->get_parameter("goal_range").as_double();
 }
@@ -109,7 +124,7 @@ void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedP
         return;
 
     // Publish half goal pose for loop
-    if(half_goal_pose_published_ == false &&
+    if(pit_stop_flag == false && half_goal_pose_published_ == false && 
         tier4_autoware_utils::calcDistance2d(msg->pose.pose, goal_position_) < goal_range_) 
     {
         auto goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
@@ -120,6 +135,7 @@ void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedP
         goal_publisher_->publish(*goal_pose);
         RCLCPP_INFO(this->get_logger(), "Publishing half goal pose for loop");
         half_goal_pose_published_ = true;
+        lap_count_ += 1;
     }
     // Publish goal pose for loop
     if (half_goal_pose_published_ == true &&
@@ -133,6 +149,38 @@ void GoalPosePublisher::odometry_callback(const nav_msgs::msg::Odometry::SharedP
         goal_publisher_->publish(*goal_pose);
         RCLCPP_INFO(this->get_logger(), "Publishing goal pose for loop");
         half_goal_pose_published_ = false;
+    }
+
+    // Publish pit stop goal pose
+    if (pit_stop_flag ==  true && pit_stop_published == false && 
+        half_goal_pose_published_ == false &&
+        tier4_autoware_utils::calcDistance2d(msg->pose.pose, goal_position_) < goal_range_)
+    {
+        auto goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
+        goal_pose->header.stamp = this->get_clock()->now();
+        goal_pose->header.frame_id = "map";
+        goal_pose->pose = pit_stop_goal_position_;
+
+        goal_publisher_->publish(*goal_pose);
+        RCLCPP_INFO(this->get_logger(), "Publishing goal pose for loop");
+        pit_stop_published = true; 
+    }
+
+    // Check vehicle condition and publish pit stop goal pose
+    if (vehicle_condition_ == 0 && pit_stop_published == true)
+    {
+        auto goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
+        goal_pose->header.stamp = this->get_clock()->now();
+        goal_pose->header.frame_id = "map";
+        goal_pose->pose = half_goal_position_;
+
+        goal_publisher_->publish(*goal_pose);
+        RCLCPP_INFO(this->get_logger(), "Publishing half goal pose for loop");
+
+        half_goal_pose_published_ = true;
+        pit_stop_published = false;
+        pit_stop_flag = false;
+        lap_count_ += 1;
     }
 }
 

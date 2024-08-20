@@ -42,11 +42,14 @@ private:
     bool stop_initializing_pose_ = false;
     bool stop_streaming_goal_pose_ = false;
     bool half_goal_pose_published_ = false;
+    bool pit_stop_flag = false;
+    bool pit_stop_published_ = false;
     bool is_started_ = false;
     int delay_count_ = 0;
     float goal_range_;
     geometry_msgs::msg::Pose goal_position_;
     geometry_msgs::msg::Pose half_goal_position_;
+    geometry_msgs::msg::Pose pit_stop_position_;
 };
 
 #endif  // GOAL_POSE_SETTER_NODE_
