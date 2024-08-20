@@ -61,7 +61,7 @@ void SimplePurePursuit::onTimer()
 
   // publish zero command
   AckermannControlCommand cmd = zeroAckermannControlCommand(get_clock()->now());
-
+  double target_longitudinal_vel = 0.0;
   if (
     (closet_traj_point_idx == trajectory_->points.size() - 1) ||
     (trajectory_->points.size() <= trajectory_points_size_)) {
@@ -73,15 +73,17 @@ void SimplePurePursuit::onTimer()
     TrajectoryPoint closet_traj_point = trajectory_->points.at(closet_traj_point_idx);
 
     // calc longitudinal speed and acceleration
-    double target_longitudinal_vel =
+    target_longitudinal_vel =
       use_external_target_vel_ ? external_target_vel_ : closet_traj_point.longitudinal_velocity_mps;
     double current_longitudinal_vel = odometry_->twist.twist.linear.x;
 
     cmd.longitudinal.speed = target_longitudinal_vel;
     cmd.longitudinal.acceleration =
       speed_proportional_gain_ * (target_longitudinal_vel - current_longitudinal_vel);
+  }
 
-    // calc lateral control
+  // Even when there are only a few remaining coordinate points, the lateral control will still be calculated
+  // calc lateral control
     //// calc lookahead distance
     double lookahead_distance = lookahead_gain_ * target_longitudinal_vel + lookahead_min_distance_;
     //// calc center coordinate of rear wheel
@@ -107,7 +109,7 @@ void SimplePurePursuit::onTimer()
                    tf2::getYaw(odometry_->pose.pose.orientation);
     cmd.lateral.steering_tire_angle =
       std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
-  }
+
   pub_cmd_->publish(cmd);
 }
 
