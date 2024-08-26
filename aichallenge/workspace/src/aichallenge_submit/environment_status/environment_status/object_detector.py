@@ -44,12 +44,11 @@ class ObjectDetectorNode(rclpy.node.Node):
                 y = msg.data[i + 1]
                 z = msg.data[i + 2]
                 size = msg.data[i + 3]
-                # ログ出力
                 self.get_logger().info(f"Received object at ({x}, {y}, {z}) with size {size}")
 
-                # CSVファイルに書き込み
+                # Write to CSV file
                 self.csv_writer.writerow([x, y, z, size])
-                self.csv_file.flush() 
+                self.csv_file.flush()  
             except IndexError:
                 self.get_logger().error(f"Index error processing data at index {i}")
 
@@ -98,10 +97,10 @@ class PitStopDetectorNode(rclpy.node.Node):
                 ow = msg.data[i + 6]
                 sx = msg.data[i + 7]
                 sy = msg.data[i + 8]
-                # ログ出力
+                # Log the data
                 self.get_logger().info(f"Received pitstop area at ({x}, {y}, {z}) with orientation ({ox}, {oy}, {oz}, {ow}) and scale ({sx}, {sy}, 0.1)")
 
-                # CSVファイルに書き込み
+                # Write to CSV file
                 self.csv_writer.writerow([x, y, z, ox, oy, oz, ow, sx, sy, 0.1])
             except IndexError:
                 self.get_logger().error(f"Index error processing pitstop data at index {i}")
@@ -144,7 +143,7 @@ class PitStopConditionNode(rclpy.node.Node):
 
         # Write to CSV file
         self.csv_writer.writerow([elapsed_time, pit_condition])
-        self.csv_file.flush()  # フラッシュ処理を追加
+        self.csv_file.flush()  
 
     def close(self):
         # Close CSV file when node is destroyed
@@ -183,7 +182,7 @@ class PitstopStatusNode(rclpy.node.Node):
 
         # Write to CSV file
         self.csv_writer.writerow([elapsed_time, pit_status])
-        self.csv_file.flush()  # フラッシュ処理を追加
+        self.csv_file.flush()  
 
     def close(self):
         # Close CSV file when node is destroyed
@@ -195,12 +194,13 @@ def main(args=None):
     rclpy.init(args=args)
     executor = rclpy.executors.MultiThreadedExecutor()
     
-    # ノードの作成
+    # CREATE OBJECT DETECTOR NODE
     object_detector_node = ObjectDetectorNode()
     pitstop_detector_node = PitStopDetectorNode()
     pitstop_condition_node = PitStopConditionNode()
     pitstop_status_node = PitstopStatusNode()
 
+    # ADD NODES TO EXECUTOR
     executor.add_node(object_detector_node)
     executor.add_node(pitstop_detector_node)
     executor.add_node(pitstop_condition_node)

@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'object_detector = environment_status.object_detector:main'
+            'object_detector = environment_status.object_detector:main',
+            'map_receivement = environment_status.maps.map_receivement:main',
+            'delaunay_node_base = environment_status.maps.delaunay_node_base:main',
         ],
     },
 )
