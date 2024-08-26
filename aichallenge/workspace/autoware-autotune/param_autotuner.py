@@ -5,11 +5,52 @@ import subprocess
 import psutil
 import matplotlib.pyplot as plt
 from time import sleep
+import os
+import signal
 
 # パラメータファイルを読み込む関数
 def load_target_params(file):
     with open(file, "r") as f:
         return yaml.safe_load(f)
+    
+
+# `param_autotuner.py`のプロセスを取得するための関数
+def get_optuna_pid():
+    try:
+        # `pgrep`コマンドを使って`optuna.py`のPIDを取得する
+        result = subprocess.run(['pgrep', '-f', '/aichallenge/workspace/Autoware-Autotune/param_autotuner.py'], stdout=subprocess.PIPE, text=True)
+        pids = result.stdout.strip().split('\n')
+        if pids:
+            return pids
+        return []
+    except Exception as e:
+        print(f"Error getting PID: {e}")
+        return []
+
+# `param_autotuner.py`以外の`python3`のプロセスを取得するための関数
+def get_python3_pids():
+    try:
+        # `pgrep`コマンドを使って`python3`のPIDを取得する
+        result = subprocess.run(['pgrep', '-f', 'python3'], stdout=subprocess.PIPE, text=True)
+        pids = result.stdout.strip().split('\n')
+        return pids
+    except Exception as e:
+        print(f"Error getting PID: {e}")
+        return []
+
+# `param_autotuner.py`以外の`python3`のプロセスを終了させる関数
+def terminate_processes(exclude_pids, process_names):
+    for name in process_names:
+        try:
+            result = subprocess.run(['pgrep', '-f', name], stdout=subprocess.PIPE, text=True)
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid not in exclude_pids:
+                    os.kill(int(pid), signal.SIGKILL)
+                    print(f"Terminated process {name} with PID {pid}")
+        except Exception as e:
+            print(f"Error terminating process {name}: {e}")
+
 
 # パラメータをyamlファイルに書き込む関数
 def update_yaml(file, data):
@@ -43,7 +84,7 @@ def update_yaml(file, data):
 # Optunaによる最適化対象の評価関数
 def objective(trial, param_ranges, param_files, target_param):
     params = {
-        param: trial.suggest_float(param, param_ranges[param]['min'], param_ranges[param]['max']) if param_ranges[param]['type'] == 'float'
+        param: trial.suggest_float(param, param_ranges[param]['min'], param_ranges[param]['max'], step=0.1) if param_ranges[param]['type'] == 'float'
         else trial.suggest_int(param, param_ranges[param]['min'], param_ranges[param]['max'])
         for param in param_ranges
     }
@@ -112,33 +153,67 @@ def objective(trial, param_ranges, param_files, target_param):
 
         update_yaml(file, data)
 
-    # Autowareを起動
-    p_autoware = subprocess.Popen("exec " + "bash /aichallenge/run.sh", shell=True)
-    # シミュレータを起動
-    p_awsim = subprocess.Popen(['/aichallenge/aichallenge_ws/AWSIM/AWSIM.x86_64'])
+    # Autowareを起動    
+    command = """
+        source /opt/ros/humble/setup.bash
+        source /aichallenge/workspace/install/setup.bash
+        bash /aichallenge/run_evaluation.bash
+    """
+
+    p_autoware = subprocess.Popen(command, shell=True)
 
     sleep(60*6)
 
     # シャットダウン
-    # 現在のPythonプロセス以外のすべてのプロセスをキル
-    current_process = psutil.Process()
-    for process in psutil.process_iter(attrs=['pid', 'name']):
-        if process.info['pid'] != current_process.pid:
-            process.terminate()  # プロセスを終了させる
+
+    # `optuna.py`のPIDを取得
+    optuna_pids = get_optuna_pid()
+
+    # `python3`のPIDを取得
+    python3_pids = get_python3_pids()
+
+    # `param_autotuner.py`のプロセスを除外して他のプロセスを終了
+    if optuna_pids:
+        # `python3`のプロセスも含めて他のプロセスを終了させる
+        # "./pkill_all.sh"を参考に
+        terminate_processes(optuna_pids, [
+            'component_conta',
+            'ekf_localizer',
+            'empty_objects_p',
+            'goal_pose_sette',
+            'goal_pose_visua',
+            'gyro_odometer',
+            'imu_corrector',
+            'imu_gnss_poser_',
+            'initial_pose_ad',
+            'mission_planner',
+            'path_to_traject',
+            'robot_state_pub',
+            'ros2',
+            'routing_adaptor',
+            'rviz2',
+            'simple_pure_pur',
+            'twist2accel',
+            'vehicle_veloc'
+        ])
+    else:
+        print("optuna.py process not found.")
+
+    sleep(60)
 
     # ユーザーが評価値を入力
     # evaluation = float(input("Enter the evaluation result: "))
 
-    # jsonから評価値を読み込む
+    # .jsonから評価値を読み込む
     try:
-        with open('/aichallenge/result.json', 'r') as results_file:
+        with open('/aichallenge/optuna-result-summary.json', 'r') as results_file:
             results = json.load(results_file)
-    
-        # evaluation = results['rawDistanceScore']
-        evaluation = results['distanceScore']
+
+        evaluation = results.get('min_time', float('inf'))
+        
     
     except:
-        evaluation = 0.0
+        evaluation = float('inf')
 
     return evaluation
 
@@ -197,12 +272,13 @@ def main():
     print(param_ranges)
 
     # Optunaでパラメータを最適化
-    study = optuna.create_study(direction='maximize', study_name='Autoware_turning_study', storage='sqlite:///Autoware_turning_study.db', load_if_exists=True)
+    study = optuna.create_study(direction='minimize', study_name='Autoware_turning_study-2024-08-15', storage='sqlite:///Autoware_turning_study-2024-08-15.db', load_if_exists=True)
     study.optimize(lambda trial: objective(trial, param_ranges, param_files, target_param), n_trials=100)
+
 
     # パラメータの収束を図として表示
     for param in param_ranges:
-        plt.plot([t.params[param] for t in study.trials], label=param)
+        plt.plot([t.params[param] for t in study.trials], 'o', label=param)
     plt.legend()
     plt.xlabel("Iterations")
     plt.ylabel("Parameter Value")
@@ -217,11 +293,11 @@ def main():
     plt.show()
 
     # 各最適化結果をyamlファイルに保存
-    # for i, trial in enumerate(study.trials):
-    #     trial_params = trial.params
-    #     trial_value = trial.value
-    #     with open(f'optimization_result_{i + 1}.yaml', 'w') as file:
-    #         yaml.dump({'params': trial_params, 'value': trial_value}, file)
+    for i, trial in enumerate(study.trials):
+        trial_params = trial.params
+        trial_value = trial.value
+        with open(f'optimization_result_{i + 1}.yaml', 'w') as file:
+            yaml.dump({'params': trial_params, 'value': trial_value}, file)
 
 if __name__ == '__main__':
     main()
