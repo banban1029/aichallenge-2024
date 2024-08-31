@@ -123,7 +123,7 @@ void GoalPosePublisher::route_state_callback(const autoware_adapi_v1_msgs::msg::
 
 void GoalPosePublisher::onVehicleCondition(const std_msgs::msg::Int32::SharedPtr msg){
     vehicle_condition_ = msg->data;
-    if (vehicle_condition_ >= 1000 && lap_count_ <= 4){ // until 4 laps
+    if (vehicle_condition_ >= 800 && lap_count_ <= 4){ // until 4 laps
         pit_stop_flag = true;
     }
 }
