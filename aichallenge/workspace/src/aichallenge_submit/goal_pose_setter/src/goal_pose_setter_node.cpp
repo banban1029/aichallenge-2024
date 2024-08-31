@@ -43,7 +43,7 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     this->declare_parameter("pit_stop_area.orientation.z", -0.8788172006607056);
     this->declare_parameter("pit_stop_area.orientation.w", -0.47715866565704346);
 
-    this->declare_parameter("goal_range", 10.0);
+    this->declare_parameter("goal_range", 20.0);
 
     goal_position_.position.x = this->get_parameter("goal.position.x").as_double();
     goal_position_.position.y = this->get_parameter("goal.position.y").as_double();

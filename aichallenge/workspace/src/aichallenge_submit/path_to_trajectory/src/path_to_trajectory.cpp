@@ -49,7 +49,7 @@ void PathToTrajectory::avoidObstacles(Trajectory &trajectory) {
     return;
   }
 
-  constexpr double SAFETY_DISTANCE = 4.0; // Increased safety distance in meters
+  constexpr double SAFETY_DISTANCE = 3.8; // Increased safety distance in meters
   constexpr double MAX_STEERING_OFFSET = 3.4; // Maximum steering offset in meters
 
   // Iterate through the trajectory points
@@ -121,5 +121,4 @@ int main(int argc, char const* argv[]) {
   rclcpp::shutdown();
   return 0;
 }
-
 
