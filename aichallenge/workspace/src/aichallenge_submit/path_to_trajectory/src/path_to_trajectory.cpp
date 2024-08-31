@@ -37,6 +37,9 @@ void PathToTrajectory::callback(const PathWithLaneId::SharedPtr msg) {
   // 障害物を避ける処理を追加
   avoidObstacles(trajectory);
 
+  // 軌道を滑らかにする処理を追加
+  smoothTrajectory(trajectory);
+
   pub_->publish(trajectory);
 }
 
@@ -89,6 +92,27 @@ void PathToTrajectory::avoidObstacles(Trajectory &trajectory) {
       }
     }
   }
+}
+
+void PathToTrajectory::smoothTrajectory(Trajectory &trajectory) {
+    if (trajectory.points.size() < 5) {
+        // Not enough points to smooth
+        return;
+    }
+    Trajectory smoothed_trajectory = trajectory;
+    int window_size = 7; // Number of points to consider for moving average
+    for (size_t i = window_size / 2; i < trajectory.points.size() - window_size / 2; ++i) {
+        double sum_x = 0.0;
+        double sum_y = 0.0;
+        for (int j = -window_size / 2; j <= window_size / 2; ++j) {
+            sum_x += trajectory.points[i + j].pose.position.x;
+            sum_y += trajectory.points[i + j].pose.position.y;
+        }
+        smoothed_trajectory.points[i].pose.position.x = sum_x / window_size;
+        smoothed_trajectory.points[i].pose.position.y = sum_y / window_size;
+    }
+     // Directly assign the points to the trajectory
+    trajectory.points = smoothed_trajectory.points;
 }
 
 int main(int argc, char const* argv[]) {

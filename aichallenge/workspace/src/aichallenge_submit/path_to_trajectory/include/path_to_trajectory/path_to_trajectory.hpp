@@ -34,6 +34,7 @@ class PathToTrajectory : public rclcpp::Node {
  private:
   void callback(const PathWithLaneId::SharedPtr msg);
   void avoidObstacles(Trajectory &trajectory);  // 障害物回避処理を追加
+  void smoothTrajectory(Trajectory &trajectory); // 軌道を滑らかにする処理を追加
   rclcpp::Subscription<PathWithLaneId>::SharedPtr sub_;
   rclcpp::Publisher<Trajectory>::SharedPtr pub_;
   rclcpp::Subscription<MarkerArray>::SharedPtr sub_objects_;  // 障害物
