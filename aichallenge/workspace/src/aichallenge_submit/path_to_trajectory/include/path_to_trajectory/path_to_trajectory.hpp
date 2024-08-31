@@ -18,20 +18,27 @@
 #include "autoware_auto_planning_msgs/msg/trajectory.hpp"
 #include "autoware_auto_planning_msgs/msg/trajectory_point.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"  // MarkerArrayの追加
 
 class PathToTrajectory : public rclcpp::Node {
  public:
   using PathWithLaneId = autoware_auto_planning_msgs::msg::PathWithLaneId;
   using Trajectory = autoware_auto_planning_msgs::msg::Trajectory;
   using TrajectoryPoint = autoware_auto_planning_msgs::msg::TrajectoryPoint;
+  using MarkerArray = visualization_msgs::msg::MarkerArray;  // MarkerArrayの宣言を追加
+
 
  public:
   PathToTrajectory();
 
  private:
   void callback(const PathWithLaneId::SharedPtr msg);
+  void avoidObstacles(Trajectory &trajectory);  // 障害物回避処理を追加
   rclcpp::Subscription<PathWithLaneId>::SharedPtr sub_;
   rclcpp::Publisher<Trajectory>::SharedPtr pub_;
+  rclcpp::Subscription<MarkerArray>::SharedPtr sub_objects_;  // 障害物
+  MarkerArray::SharedPtr objects_;  // 障害物データ
 };
 
 #endif  // PATH_TO_TRAJECTORY__PATH_TO_TRAJECTORY_HPP_
+
