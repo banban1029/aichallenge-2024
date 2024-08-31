@@ -176,10 +176,10 @@
               <remap from="~/output/hazard_lights_cmd" to="/planning/hazard_lights_cmd" />
               <remap from="~/output/modified_goal" to="/planning/scenario_planning/modified_goal" />
               <param name="bt_tree_config_path" value="$(find-pkg-share aichallenge_submit_launch)/config/behavior_path_planner_tree.xml"/>
-              <param name="lane_change.enable_abort_lane_change" value="false"/>
-              <param name="lane_change.enable_collision_check_at_prepare_phase" value="false"/>
-              <param name="lane_change.use_predicted_path_outside_lanelet" value="false"/>
-              <param name="lane_change.use_all_predicted_path" value="false"/>
+              <param name="lane_change.enable_abort_lane_change" value="true"/>
+              <param name="lane_change.enable_collision_check_at_prepare_phase" value="true"/>
+              <param name="lane_change.use_predicted_path_outside_lanelet" value="true"/>
+              <param name="lane_change.use_all_predicted_path" value="true"/>
               <param from="$(find-pkg-share autoware_launch)/config/planning/scenario_planning/common/nearest_search.param.yaml" />
               <param from="$(find-pkg-share autoware_launch)/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/side_shift/side_shift.param.yaml" />
               <param from="$(find-pkg-share autoware_launch)/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml" />
@@ -216,14 +216,14 @@
   </group>
 
   <!-- Optional parameters -->
-  <arg name="external_target_vel" default="$(env EXTERNAL_TARGET_VEL 8.0)" description="parameters"/>
+  <!-- <arg name="external_target_vel" default="$(env EXTERNAL_TARGET_VEL 8.0)" description="parameters"/>
   <arg name="lookahead_gain" default="$(env LOOKAHEAD_GAIN 0.3)" description="parameters"/>
   <arg name="lookahead_min_distance" default="$(env LOOKAHEAD_MIN_DISTANCE 4.0)" description="parameters"/>
-  <arg name="speed_proportional_gain" default="$(env SPEED_PROPORTIONAL_GAIN 1.0)" description="parameters"/>
+  <arg name="speed_proportional_gain" default="$(env SPEED_PROPORTIONAL_GAIN 1.0)" description="parameters"/> -->
 
   <!-- Control -->
   <!-- pure-pursuit -->
-  <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
+  <!-- <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
     <param name="external_target_vel" value="$(var external_target_vel)"/>
     <param name="lookahead_gain" value="$(var lookahead_gain)"/>
     <param name="lookahead_min_distance" value="$(var lookahead_min_distance)"/>
@@ -233,7 +233,12 @@
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
     <remap from="output/control_cmd" to="/control/command/control_cmd"/>
     <param from="$(find-pkg-share aichallenge_submit_launch)/config/control/trajectory_follower/lateral/simple_pure_pursuit.param.yaml" /> 
-  </node>
+  </node> -->
+
+
+  <!-- MPC -->
+  <include file="$(find-pkg-share aichallenge_submit_launch)/launch/tier4_control_component.launch.xml"/>
+
 
   <!-- Map -->
   <group>

@@ -71,8 +71,6 @@ void CsvToTrajectory::readCsv(const std::string& file_path) {
       point.pose.orientation.w = cos(yaw / 2);
       point.longitudinal_velocity_mps = values[5] * this->velocity_rate_;
       point.acceleration_mps2 = 0.0; //values[6];
-      
-
       trajectory_points_.push_back(point);
   }
   RCLCPP_INFO(this->get_logger(), "Loaded %zu trajectory points", trajectory_points_.size());

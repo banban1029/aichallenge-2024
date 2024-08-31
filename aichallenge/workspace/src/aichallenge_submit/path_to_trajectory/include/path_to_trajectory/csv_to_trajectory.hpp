@@ -29,6 +29,7 @@ public:
   using Trajectory = autoware_auto_planning_msgs::msg::Trajectory;
   using TrajectoryPoint = autoware_auto_planning_msgs::msg::TrajectoryPoint;
 
+public:
   CsvToTrajectory();
 
 private:
