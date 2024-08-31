@@ -40,7 +40,7 @@
 
 namespace autoware::motion::control::mpc_lateral_controller
 {
-
+  
 namespace trajectory_follower = ::autoware::motion::control::trajectory_follower;
 using autoware_auto_control_msgs::msg::AckermannLateralCommand;
 using autoware_auto_planning_msgs::msg::Trajectory;

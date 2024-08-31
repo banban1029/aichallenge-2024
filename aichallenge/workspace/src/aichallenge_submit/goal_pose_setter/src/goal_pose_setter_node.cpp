@@ -43,7 +43,7 @@ GoalPosePublisher::GoalPosePublisher() : Node("goal_pose_publisher")
     this->declare_parameter("pit_stop_area.orientation.z", -0.8788172006607056);
     this->declare_parameter("pit_stop_area.orientation.w", -0.47715866565704346);
 
-    this->declare_parameter("goal_range", 10.0);
+    this->declare_parameter("goal_range", 30.0);
 
     goal_position_.position.x = this->get_parameter("goal.position.x").as_double();
     goal_position_.position.y = this->get_parameter("goal.position.y").as_double();
@@ -123,7 +123,7 @@ void GoalPosePublisher::route_state_callback(const autoware_adapi_v1_msgs::msg::
 
 void GoalPosePublisher::onVehicleCondition(const std_msgs::msg::Int32::SharedPtr msg){
     vehicle_condition_ = msg->data;
-    if (vehicle_condition_ >= 800 && lap_count_ <= 4){ // until 4 laps
+    if (vehicle_condition_ >= 5000 && lap_count_ <= 4){ // until 4 laps
         pit_stop_flag = true;
     }
 }

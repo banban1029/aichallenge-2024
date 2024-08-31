@@ -1,10 +1,10 @@
 /**:
   ros__parameters:
     # -- system --
-    traj_resample_dist: 0.1         # path resampling interval [m]
+    traj_resample_dist: 0.05         # path resampling interval [m]
     use_steer_prediction: false     # flag for using steer prediction (do not use steer measurement)
-    admissible_position_error: 5.0  # stop mpc calculation when error is larger than the following value
-    admissible_yaw_error_rad: 1.57  # stop mpc calculation when error is larger than the following value
+    admissible_position_error: 50.0  # stop mpc calculation when error is larger than the following value
+    admissible_yaw_error_rad: 8.2  # stop mpc calculation when error is larger than the following value
 
     # -- path smoothing --
     enable_path_smoothing: false   # flag for path smoothing
@@ -17,11 +17,11 @@
 
     # -- mpc optimization --
     qp_solver_type: "osqp"                       # optimization solver option (unconstraint_fast or osqp)
-    mpc_prediction_horizon: 50                   # prediction horizon step
+    mpc_prediction_horizon: 20                  # prediction horizon step
     mpc_prediction_dt: 0.1                       # prediction horizon period [s]
-    mpc_weight_lat_error: 0.5                    # lateral error weight in matrix Q
-    mpc_weight_heading_error: 0.0                # heading error weight in matrix Q
-    mpc_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q
+    mpc_weight_lat_error: 1.0                    # lateral error weight in matrix Q
+    mpc_weight_heading_error: 0.2               # heading error weight in matrix Q
+    mpc_weight_heading_error_squared_vel: 0.5    # heading error * velocity weight in matrix Q
     mpc_weight_steering_input: 1.0               # steering error weight in matrix R
     mpc_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R
     mpc_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R
@@ -36,10 +36,10 @@
     mpc_low_curvature_weight_steer_rate: 0.0                   # steering rate weight in matrix R in low curvature point
     mpc_low_curvature_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R in low curvature point
     mpc_low_curvature_thresh_curvature: 0.0                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
-    mpc_weight_terminal_lat_error: 1.0           # terminal lateral error weight in matrix Q to improve mpc stability
-    mpc_weight_terminal_heading_error: 0.1       # terminal heading error weight in matrix Q to improve mpc stability
+    mpc_weight_terminal_lat_error: 1.0          # terminal lateral error weight in matrix Q to improve mpc stability
+    mpc_weight_terminal_heading_error: 0.2       # terminal heading error weight in matrix Q to improve mpc stability
     mpc_zero_ff_steer_deg: 0.5                   # threshold that feed-forward angle becomes zero
-    mpc_acceleration_limit: 2.0                  # limit on the vehicle's acceleration
+    mpc_acceleration_limit: 20.0               # limit on the vehicle's acceleration
     mpc_velocity_time_constant: 0.3              # time constant used for velocity smoothing
     mpc_min_prediction_length: 5.0               # minimum prediction length
 
@@ -52,7 +52,7 @@
     curvature_list_for_steer_rate_lim: [0.001, 0.002, 0.01]
     steer_rate_lim_dps_list_by_velocity: [60.0, 50.0, 40.0]             # steering angle rate limit list depending on velocity [deg/s]
     velocity_list_for_steer_rate_lim: [10.0, 15.0, 20.0]                  # velocity list for steering angle rate limit interpolation in ascending order [m/s]
-    acceleration_limit: 2.0          # acceleration limit for trajectory velocity modification [m/ss]
+    acceleration_limit: 20.0          # acceleration limit for trajectory velocity modification [m/ss]
     velocity_time_constant: 0.3      # velocity dynamics time constant  for trajectory velocity modification [s]
 
     # -- lowpass filter for noise reduction --
